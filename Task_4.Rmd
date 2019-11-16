@@ -1,0 +1,154 @@
+---
+title: "Task_4"
+author: "marius"
+date: "31 10 2019"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(tidyverse)
+library(dplyr)
+library(ggplot2)
+library(lubridate)
+library(zoo)
+```
+
+```{r include=FALSE}
+setwd("C:/Users/mariu/Documents/Skole/5. Semester/BED-2056 introduction to dataciense/Arbeidskrav/Task_4")
+
+datafil <- read.csv("storedata.csv")
+
+datafil$Order_Date=as.Date(datafil$Order_Date, "%Y-%m-%d")
+
+```
+
+```{r include=FALSE}
+## OPPGAVE 1
+Region <- datafil%>%
+  filter(Region==c("Region 1" , "Region 9")) %>%
+  filter(Customer_Segment == c("Corporate" , "Consumer"))%>%
+  filter(Order_Date >= "2017-10-01", Order_Date <= "2017-12-30")
+
+ Region1 <- Region %>%
+   filter(Region == "Region 1")
+ 
+salgOktober1 <- Region1$Sales [[6]] + Region1$Sales[[2]]
+salgNovember1 <- Region1$Sales [[1]] + Region1$Sales[[5]] + Region1$Sales[[8]]
+salgDesember1 <- Region1$Sales [[3]] + Region1$Sales[[4]] + Region1$Sales [[7]]
+
+Totaltsalg1 <- data.frame(salgOktober1, salgNovember1, salgDesember1) %>%
+  rename("oktober" = salgOktober1 , "November" = salgNovember1 , "Desember" = salgDesember1)
+
+
+
+Region9 <- Region %>%
+  filter(Region == "Region 9")
+
+SalgOktober9 <- Region9$Sales [[9]] + Region9$Sales[[10]] + Region9$Sales[[4]] +
+  Region9$Sales[[7]] + Region9$Sales[[5]] + Region9$Sales[[12]] + Region9$Sales[[3]]
+
+SalgNovember9 <- Region9$Sales[[1]] + Region9$Sales[[13]] + Region9$Sales[[8]]
+
+SalgDesember9 <- Region9$Sales[[11]] + Region9$Sales[[10]] + Region9$Sales[[2]] + Region9$Sales[[6]]
+  
+Totalsalg9 <- data.frame(SalgOktober9 , SalgNovember9 , SalgDesember9) %>%
+  rename("oktober" = SalgOktober9 , "November" = SalgNovember9 , "Desember" = SalgDesember9)
+
+
+```
+
+```{r}
+#oppgave 1 savartext
+paste("for region 1, the sales income for Oktober, November and December has been the following", salgOktober1, salgNovember1, salgDesember1,"For Region 9 it has been the following income", SalgOktober9, SalgNovember9, SalgDesember9, "for the past three months")
+
+```
+
+```{r include=FALSE}
+##OPPGAVE 2
+PlotRegion1 <- datafil %>%
+  filter(Region == ("Region 1")) %>%
+  filter(Order_Date >= "2015-01-01" , Order_Date <= "2017-12-30")
+  
+PlotRegion1 <- subset(PlotRegion1, select = c(Order_Date, Sales, Region))
+
+PlotRegion1$Order_Date <- as.Date(PlotRegion1$Order_Date)
+
+
+Plot01 <- ggplot(PlotRegion1, aes(x=Order_Date , y=Sales)) + geom_col()
+Plot01
+
+
+
+PlotRegion13 <- datafil %>%
+  filter(Region == ("Region 13")) %>%
+  filter(Order_Date >= "2015-01-01" , Order_Date <= "2017-12-30")
+  
+PlotRegion13 <- subset(PlotRegion13, select = c(Order_Date, Sales, Region))
+
+PlotRegion13$Order_Date <- as.Date(PlotRegion13$Order_Date)
+
+Plot13 <- ggplot(PlotRegion13, aes(x=Order_Date , y=Sales)) + geom_col()
+Plot13
+
+
+Plot01og13 <- ggplot() +
+  geom_col(data = PlotRegion1, aes(x= PlotRegion1$Order_Date, y= PlotRegion1$Sales, color=PlotRegion1$Region)) +
+  geom_col(data = PlotRegion13, aes(x= PlotRegion13$Order_Date, y=PlotRegion13$Sales, color=PlotRegion13$Region))
+Plot01og13
+```
+
+```{r}
+#OPPGAVE 2 SVAR
+Plot01og13
+paste("As we can see from the graph, Region 13 has a segnificant higer sales income all thru the three years.")
+```
+
+```{r include=FALSE}
+##OPPGAVE 3
+
+PlotRegion1$Order_Date <- as.yearmon(PlotRegion1$Order_Date, "%Y-%m") 
+
+PlotRegion13$Order_Date <- as.yearmon(PlotRegion13$Order_Date, "%Y-%m")
+
+bymonth1 <- PlotRegion1 %>%
+  group_by(Order_Date) %>%
+  summarise(Plotregion = sum(Sales))
+
+bymonth2 <- PlotRegion13 %>%
+  group_by(Order_Date) %>%
+  summarise(Plotregion = sum(Sales))
+
+diffsales <- bymonth1$Plotregion - bymonth2$Plotregion
+diffsales  # Boksen viser fra Januar 2014 til Desember 2017
+```
+
+```{r}
+#OPPGAVE 3 SVAR
+diffsales
+paste("The first number on the first row in the box output is january 2014, witch means that the last number on the last row is desember 2017. This makes it easy to identify whitch month that Region 13 had higer sales thant Region 1. ")
+```
+
+
+```{r include=FALSE}
+#OPPGAVE 4
+Averageprofit <- datafil %>%
+  filter(Region == c("Region 1", "Region 2", "Region 3", "Region 4", "Region 5"
+                     , "Region 6", "Region 7", "Region 8", "Region 9", 
+                     "Region 10", "Region 11", "Region 12", "Region 13"))
+Averageprofit <- subset(Averageprofit, select = c(Order_Date, Profit, Customer_Segment, Product_Category, Region))
+Averageprofit$Order_Date <- as.yearmon(Averageprofit$Order_Date, "%Y-%m")
+Averageprofit <- Averageprofit %>% filter(Order_Date >= "jan 2017", Order_Date <= "des 2017")%>% group_by(Customer_Segment, Product_Category, Region) %>%
+  summarise(Average_profit = mean(Profit))
+#Må skrive oppgavesvar
+```
+
+```{r}
+#OPPGAVE 4 SVAR
+Averageprofit <- sort(Averageprofit$Average_profit, decreasing = TRUE)
+Averageprofit
+paste("when we look at the table we can see that the technology category in region 2 has the highest average profit.")
+```
+
+
+
